@@ -1,0 +1,31 @@
+# ============================================================
+# requirements.txt — Dépendances du backend FastAPI
+# ============================================================
+# Installation : pip install -r requirements.txt
+
+# --- Framework Web ---
+fastapi==0.115.6          # Framework API REST
+uvicorn[standard]==0.32.1  # Serveur ASGI (remplace le runner Streamlit)
+
+# --- Validation des données ---
+pydantic==2.10.3           # Intégré à FastAPI, valide les requêtes/réponses
+
+# --- Base de données PostgreSQL ---
+psycopg2-binary==2.9.10    # Connecteur PostgreSQL (identique à l'ancienne version)
+
+# --- LLM & Embeddings ---
+requests==2.32.3           # Client HTTP pour Ollama (identique à l'ancienne version)
+
+# --- Vectorstore RAG ---
+qdrant-client==1.12.1      # Client Qdrant
+
+# --- Configuration ---
+python-dotenv==1.0.1       # Lecture du fichier .env
+
+# --- Data ---
+pandas==2.2.3              # Pour la propriété .dataframe de QueryResult
+
+# --- Optionnel : tests ---
+httpx==0.28.1              # Client HTTP pour tester FastAPI (pytest)
+pytest==8.3.4
+pytest-asyncio==0.24.0
