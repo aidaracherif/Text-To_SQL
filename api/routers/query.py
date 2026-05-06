@@ -10,10 +10,11 @@ import logging
 import unicodedata
 from typing import Union
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.schemas import QueryRequest, QuerySuccessResponse, QueryErrorResponse
 from api.dependencies import get_service
+from config.settings import OLLAMA_MODEL
 from features.text_to_sql.service import TextToSQLService
 from api.routers.history import record_query
 
@@ -37,6 +38,7 @@ router = APIRouter()
 )
 async def run_query(
     body: QueryRequest,
+    request: Request,
     service: TextToSQLService = Depends(get_service),
 ):
     """
@@ -48,23 +50,38 @@ async def run_query(
     logger.info(f"[QUERY] Question reçue : {body.question[:80]}...")
 
     result = service.ask(body.question)
-    record_query(
-    question=body.question,
-    sql=result.sql or "",
-    row_count=result.row_count,
-    duration_ms=result.duration_ms,  # ← aussi absent du QuerySuccessResponse !
-    success=not bool(result.error),
-)
+    duration_ms = getattr(result, "duration_ms", 0.0)
 
+    # ── Métadonnées de la requête HTTP (audit) ────────────────────────────────
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    # user_name : sera rempli quand l'auth sera en place (étape 4 de la roadmap)
+    user_name: str | None = None
+
+    # Champs d'audit communs à tous les chemins de retour
+    audit_common = {
+        "question": body.question,
+        "user_name": user_name,
+        "ip_address": ip_address,
+        "user_agent": user_agent,
+        "rag_context": getattr(result, "rag_context", None),
+        "rag_route": getattr(result, "rag_route", None),
+        "system_prompt": getattr(result, "system_prompt", None),
+        "user_prompt": getattr(result, "user_prompt", None),
+        "llm_model": OLLAMA_MODEL,
+        "llm_raw_output": getattr(result, "llm_raw_output", None),
+    }
 
     # ── Erreur technique (Ollama down, PostgreSQL KO, etc.) ───────────────────
     if result.error:
         record_query(
-            question=body.question,
+            **audit_common,
             sql=result.sql or "",
             row_count=0,
-            duration_ms=getattr(result, "duration_ms", 0.0),
+            duration_ms=duration_ms,
             success=False,
+            error_message=_friendly_error(result.error),
+            error_raw=result.error,
         )
         return QueryErrorResponse(
             ok=False,
@@ -74,6 +91,15 @@ async def run_query(
 
     # ── Question hors périmètre douanier ──────────────────────────────────────
     if result.warning:
+        record_query(
+            **audit_common,
+            sql=result.sql or "",
+            row_count=0,
+            duration_ms=duration_ms,
+            success=False,
+            warning=result.warning,
+            error_message=_hors_schema_message(body.question),
+        )
         return QueryErrorResponse(
             ok=False,
             sql="",
@@ -87,11 +113,13 @@ async def run_query(
     ]
 
     record_query(
-        question=body.question,
+        **audit_common,
         sql=result.sql or "",
         row_count=result.row_count,
-        duration_ms=getattr(result, "duration_ms", 0.0),
+        duration_ms=duration_ms,
         success=True,
+        columns=result.columns,
+        rows=clean_rows,
     )
     return QuerySuccessResponse(
         ok=True,
@@ -100,7 +128,7 @@ async def run_query(
         rows=clean_rows,
         narrative=_build_narrative(body.question, result.row_count),
         row_count=result.row_count,
-        duration_ms=getattr(result, "duration_ms", 0.0),
+        duration_ms=duration_ms,
     )
 
 

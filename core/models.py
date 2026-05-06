@@ -24,6 +24,13 @@ class QueryResult: # Résultat d'une question posée à TextToSQLService.ask()
     error:      Optional[str]     = None
     duration_ms: float            = 0.0
 
+    # ── Champs d'audit (optionnels, remplis par le pipeline pour la traçabilité) ──
+    rag_context:    Optional[dict] = None     # {sql_examples, knowledge, schema_chunks}
+    rag_route:      Optional[str]  = None     # "direct" | "sql_only" | "knowledge" | "schema" | "full"
+    system_prompt:  Optional[str]  = None     # prompt système envoyé au LLM
+    user_prompt:    Optional[str]  = None     # prompt user envoyé au LLM
+    llm_raw_output: Optional[str]  = None     # réponse brute du LLM avant extraction SQL
+
     @property # Convertit les résultats en DataFrame pour l'affichage dans l'UI.
     def dataframe(self) -> pd.DataFrame:
         if self.columns and self.rows:

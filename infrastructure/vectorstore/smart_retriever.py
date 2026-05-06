@@ -123,7 +123,10 @@ class SmartRetriever:
                 "sql_examples":  [...],
                 "knowledge":     [...],
                 "schema_chunks": [...],
+                "_route":        "direct" | "sql_only" | "knowledge" | "schema" | "full",
             }
+        Le champ "_route" est purement informatif (audit/debug) et préfixé
+        d'un underscore pour signaler qu'il n'est pas une collection.
         """
         context = {"sql_examples": [], "knowledge": [], "schema_chunks": []}
 
@@ -141,6 +144,7 @@ class SmartRetriever:
         if best >= THRESHOLD_DIRECT or _is_direct_pattern(question):
             route = "direct"
             logger.info(f"[SmartRetriever] DIRECT — score={best:.3f} | question={question[:60]}")
+            context["_route"] = route
             return context
 
         # ── PASSE 2 : collections complémentaires ─────────────────────────────
@@ -163,6 +167,7 @@ class SmartRetriever:
             f"| k={len(context['knowledge'])} s={len(context['schema_chunks'])} "
             f"| question={question[:60]}"
         )
+        context["_route"] = route
         return context
 
     def explain(self, question: str) -> None:

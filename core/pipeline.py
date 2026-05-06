@@ -33,9 +33,16 @@ def run_pipeline(
             context = rag_retriever.retrieve(question)
             user_prompt = build_rag_prompt(question, context)
             system_prompt = build_system_prompt(schema_text, stats_text)
+            # Audit : conserver le contexte RAG et la route choisie
+            result.rag_context = context
+            result.rag_route = context.get("_route")
         else:
             system_prompt = build_system_prompt(schema_text, stats_text)
             user_prompt = question
+
+        # Audit : conserver les prompts
+        result.system_prompt = system_prompt
+        result.user_prompt = user_prompt
 
         if verbose:
             print(f"\n[QUESTION] {question}")
@@ -43,6 +50,7 @@ def run_pipeline(
 
         # ── 3. Appel LLM ─────────────────────────────────────
         llm_response = llm_client.chat(system_prompt, user_prompt)
+        result.llm_raw_output = llm_response  # Audit : réponse brute du LLM
 
         # ── 4. Extraction SQL ────────────────────────────────
         sql = fix_sql(extract_sql(llm_response))
