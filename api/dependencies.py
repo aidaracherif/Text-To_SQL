@@ -17,12 +17,15 @@ import logging
 from functools import lru_cache
 
 from features.text_to_sql.service import TextToSQLService
+from features.voice.transcriber import VoiceTranscriber
+from features.voice.question_cleaner import QuestionCleaner
+from features.document_extraction.pdf_reader import PDFReader
+from features.document_extraction.question_builder import QuestionBuilder
 from infrastructure.vectorstore.qdrant_client import QdrantStore
 from infrastructure.vectorstore.smart_retriever import SmartRetriever
 from infrastructure.llm.ollama_client import OllamaClient
 
 logger = logging.getLogger(__name__)
-
 
 def _build_rag_retriever() -> SmartRetriever | None:
     """
@@ -58,3 +61,39 @@ def get_service() -> TextToSQLService:
     service = TextToSQLService(rag_retriever=rag_retriever)
     logger.info("TextToSQLService prêt.")
     return service
+
+# =============================================================================
+# 🆕 Service Vocal
+# =============================================================================
+
+@lru_cache(maxsize=1)
+def get_voice_transcriber() -> VoiceTranscriber:
+    """
+    Singleton VoiceTranscriber.
+    NB : le modèle Whisper n'est PAS chargé ici (lazy loading au 1er appel).
+    """
+    logger.info("Initialisation de VoiceTranscriber (modèle chargé à la demande)...")
+    return VoiceTranscriber()
+
+
+@lru_cache(maxsize=1)
+def get_question_cleaner() -> QuestionCleaner:
+    """Singleton QuestionCleaner (réutilise le client Ollama global)."""
+    return QuestionCleaner(llm_client=OllamaClient())
+
+
+
+# =============================================================================
+# 🆕 Service Document/PDF
+# =============================================================================
+
+@lru_cache(maxsize=1)
+def get_pdf_reader() -> PDFReader:
+    """Singleton PDFReader."""
+    return PDFReader()
+
+
+@lru_cache(maxsize=1)
+def get_question_builder() -> QuestionBuilder:
+    """Singleton QuestionBuilder pour les PDF."""
+    return QuestionBuilder(llm_client=OllamaClient())

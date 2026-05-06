@@ -29,3 +29,33 @@ pandas==2.2.3              # Pour la propriété .dataframe de QueryResult
 httpx==0.28.1              # Client HTTP pour tester FastAPI (pytest)
 pytest==8.3.4
 pytest-asyncio==0.24.0
+
+# ============================================================
+# 🆕 NOUVELLES DÉPENDANCES — Vocal + PDF
+# ============================================================
+
+# --- Transcription vocale (Whisper local, optimisé CTranslate2) ---
+faster-whisper==1.1.0      # 4x plus rapide qu'openai-whisper, support FR
+
+# --- Lecture PDF ---
+pdfplumber==0.11.4         # Extraction texte + tables (priorité)
+PyMuPDF==1.25.1            # Fallback rapide pour PDF complexes (import: fitz)
+
+# --- OCR pour PDF scannés ---
+pytesseract==0.3.13        # Wrapper Python Tesseract
+                           # ⚠️ Requiert tesseract-ocr installé sur l'OS :
+                           #   Ubuntu : sudo apt install tesseract-ocr tesseract-ocr-fra
+                           #   macOS  : brew install tesseract tesseract-lang
+                           #   Win    : https://github.com/UB-Mannheim/tesseract/wiki
+Pillow==11.0.0             # Manipulation images pour OCR
+pdf2image==1.17.0          # Convertir PDF → images (pour OCR)
+                           # ⚠️ Requiert poppler-utils :
+                           #   Ubuntu : sudo apt install poppler-utils
+                           #   macOS  : brew install poppler
+
+# --- Tests ---
+httpx==0.28.1
+pytest==8.3.4
+pytest-asyncio==0.24.0
+
+
