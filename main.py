@@ -11,7 +11,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import query, health, history
+from api.routers import query, health, history, auth
 
 logging.basicConfig(
     level=logging.INFO,
@@ -70,6 +70,7 @@ app.add_middleware(
 # =============================================================================
 
 app.include_router(health.router,   prefix="/api/v1", tags=["Health"])
+app.include_router(auth.router,     prefix="/api/v1", tags=["Authentication"])
 app.include_router(query.router,    prefix="/api/v1", tags=["Query"])
 app.include_router(history.router,  prefix="/api/v1", tags=["History"])
 

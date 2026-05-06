@@ -126,3 +126,37 @@ def sample_rag_context():
         ],
         "_route": "direct",
     }
+
+
+# =============================================================================
+# FIXTURES — Authentification (utilisateurs factices pour les tests d'API)
+# =============================================================================
+
+@pytest.fixture
+def fake_user():
+    """Un utilisateur 'user' standard authentifié."""
+    return {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@dgd.sn",
+        "full_name": "Alice Test",
+        "role": "user",
+        "is_active": True,
+        "created_at": "2024-01-01T00:00:00",
+        "last_login_at": None,
+    }
+
+
+@pytest.fixture
+def fake_admin():
+    """Un utilisateur 'admin' authentifié."""
+    return {
+        "id": 99,
+        "username": "admin",
+        "email": "admin@dgd.sn",
+        "full_name": "Admin Test",
+        "role": "admin",
+        "is_active": True,
+        "created_at": "2024-01-01T00:00:00",
+        "last_login_at": None,
+    }

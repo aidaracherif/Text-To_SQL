@@ -74,3 +74,44 @@ class HistoryResponse(BaseModel):
     """Liste des requêtes récentes"""
     entries: List[HistoryEntry]
     total: int
+
+
+# =============================================================================
+# AUTHENTIFICATION
+# =============================================================================
+
+class LoginRequest(BaseModel):
+    """Corps de la requête POST /api/v1/auth/login"""
+    username: str = Field(..., min_length=3, max_length=64)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class TokenResponse(BaseModel):
+    """Réponse du login : token JWT à utiliser dans Authorization: Bearer ..."""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in_seconds: int = Field(..., description="Durée de validité du token")
+
+
+class RegisterRequest(BaseModel):
+    """Corps de la requête POST /api/v1/auth/register (admin uniquement)"""
+    username: str = Field(..., min_length=3, max_length=64,
+                          pattern=r"^[a-zA-Z0-9_.-]+$",
+                          description="Lettres, chiffres, _ . - uniquement")
+    password: str = Field(..., min_length=8, max_length=128,
+                          description="Au moins 8 caractères")
+    email: Optional[str] = Field(None, max_length=255)
+    full_name: Optional[str] = Field(None, max_length=128)
+    role: str = Field("user", pattern=r"^(user|admin)$")
+
+
+class UserResponse(BaseModel):
+    """Représentation publique d'un utilisateur (sans password_hash)."""
+    id: int
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    role: str
+    is_active: bool
+    created_at: str
+    last_login_at: Optional[str] = None

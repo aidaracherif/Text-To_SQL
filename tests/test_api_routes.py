@@ -19,6 +19,7 @@ from fastapi.testclient import TestClient
 
 from main import app
 from api.dependencies import get_service
+from auth.dependencies import get_current_user, require_admin
 from core.models import QueryResult
 
 
@@ -34,11 +35,26 @@ def mock_service():
 
 
 @pytest.fixture
-def client(mock_service):
+def client(mock_service, fake_user, fake_admin):
     """
-    TestClient avec le service mocké.
-    Override automatique nettoyé après chaque test.
+    TestClient avec :
+      - service mocké
+      - get_current_user → fake_user (utilisateur authentifié)
+      - require_admin    → fake_admin (admin authentifié)
+
+    Pour tester l'absence d'auth, utiliser `client_no_auth` à la place.
     """
+    app.dependency_overrides[get_service] = lambda: mock_service
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[require_admin] = lambda: fake_admin
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_no_auth(mock_service):
+    """TestClient SANS bypass d'auth — pour tester que les routes rejettent bien."""
     app.dependency_overrides[get_service] = lambda: mock_service
     with TestClient(app) as c:
         yield c

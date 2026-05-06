@@ -62,3 +62,28 @@ EMBED_DIM   = int(os.getenv("EMBED_DIM"))
 
 MAX_ROWS_RESULT = int(os.getenv("MAX_ROWS_RESULT"))
 RAG_TOP_K       = int(os.getenv("RAG_TOP_K"))
+
+# =============================================================================
+# AUTHENTIFICATION (JWT)
+# =============================================================================
+
+# Clé secrète utilisée pour signer les tokens JWT.
+# IMPORTANT : doit être longue (32+ caractères) et secrète.
+# Génération recommandée : openssl rand -hex 32
+# Pour le dev local, on accepte une valeur vide mais on warn.
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+
+# Algorithme de signature (HS256 = HMAC-SHA256, le plus courant)
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+
+# Durée de validité d'un token (en heures). 24h par défaut.
+JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+
+# Vérification au démarrage : la clé secrète DOIT être définie en prod
+if not JWT_SECRET_KEY or len(JWT_SECRET_KEY) < 32:
+    import warnings
+    warnings.warn(
+        "JWT_SECRET_KEY est vide ou trop courte (<32 caractères). "
+        "Définissez une clé forte dans .env via : openssl rand -hex 32",
+        RuntimeWarning,
+    )

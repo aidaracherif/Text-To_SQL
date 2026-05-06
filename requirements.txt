@@ -29,3 +29,7 @@ pandas==2.2.3              # Pour la propriété .dataframe de QueryResult
 httpx==0.28.1              # Client HTTP pour tester FastAPI (pytest)
 pytest==8.3.4
 pytest-asyncio==0.24.0
+
+#New 
+bcrypt 
+PyJWT
